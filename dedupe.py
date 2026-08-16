@@ -22,7 +22,7 @@ class FileDedupeCleaner:
 
         self.hashes = {}
         for root, _, files in os.walk(target_dir):
-            for file in files:
+            for file in sorted(files):
                 if ext_filter and not file.lower().endswith(ext_filter.lower()):
                     continue
                 file_path = os.path.join(root, file)
@@ -37,3 +37,15 @@ class FileDedupeCleaner:
         # Filter only hashes with duplicates (>1 files)
         duplicates = {h: paths for h, paths in self.hashes.items() if len(paths) > 1}
         return duplicates
+
+    def remove_duplicates(self, duplicates: dict, keep_first: bool = True) -> int:
+        removed_count = 0
+        for hash_val, paths in duplicates.items():
+            if len(paths) <= 1:
+                continue
+            to_remove = paths[1:] if keep_first else paths[:-1]
+            for file_path in to_remove:
+                if os.path.exists(file_path):
+                    os.remove(file_path)
+                    removed_count += 1
+        return removed_count

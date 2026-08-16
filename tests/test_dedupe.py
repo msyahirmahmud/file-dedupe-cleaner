@@ -36,6 +36,13 @@ class TestFileDedupeCleaner(unittest.TestCase):
         self.assertEqual(len(duplicates[hash_key]), 2)
         self.assertTrue(all(p.endswith('.txt') for p in duplicates[hash_key]))
 
+    def test_remove_duplicates_deletes_redundant_files(self):
+        duplicates = self.cleaner.scan_directory(self.temp_dir.name)
+        removed = self.cleaner.remove_duplicates(duplicates, keep_first=True)
+        self.assertEqual(removed, 2)
+        remaining = [f for f in [self.file1, self.file2, self.file3] if os.path.exists(f)]
+        self.assertEqual(len(remaining), 1)
+
     def test_non_existent_directory_raises_error(self):
         with self.assertRaises(ValueError):
             self.cleaner.scan_directory("/invalid/non_existent_path")
