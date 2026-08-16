@@ -29,6 +29,13 @@ class TestFileDedupeCleaner(unittest.TestCase):
         hash_key = list(duplicates.keys())[0]
         self.assertEqual(len(duplicates[hash_key]), 3)
 
+    def test_ext_filter_filters_by_file_extension(self):
+        duplicates = self.cleaner.scan_directory(self.temp_dir.name, ext_filter=".txt")
+        self.assertEqual(len(duplicates), 1)
+        hash_key = list(duplicates.keys())[0]
+        self.assertEqual(len(duplicates[hash_key]), 2)
+        self.assertTrue(all(p.endswith('.txt') for p in duplicates[hash_key]))
+
     def test_remove_duplicates_deletes_redundant_files(self):
         duplicates = self.cleaner.scan_directory(self.temp_dir.name)
         removed = self.cleaner.remove_duplicates(duplicates, keep_first=True)
