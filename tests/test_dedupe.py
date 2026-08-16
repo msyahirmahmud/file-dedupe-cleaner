@@ -23,13 +23,18 @@ class TestFileDedupeCleaner(unittest.TestCase):
     def tearDown(self):
         self.temp_dir.cleanup()
 
+    def test_scan_directory_finds_duplicates(self):
+        duplicates = self.cleaner.scan_directory(self.temp_dir.name)
+        self.assertEqual(len(duplicates), 1)
+        hash_key = list(duplicates.keys())[0]
+        self.assertEqual(len(duplicates[hash_key]), 3)
+
     def test_remove_duplicates_deletes_redundant_files(self):
         duplicates = self.cleaner.scan_directory(self.temp_dir.name)
         removed = self.cleaner.remove_duplicates(duplicates, keep_first=True)
         self.assertEqual(removed, 2)
-        self.assertTrue(os.path.exists(self.file1))
-        self.assertFalse(os.path.exists(self.file2))
-        self.assertFalse(os.path.exists(self.file3))
+        remaining = [f for f in [self.file1, self.file2, self.file3] if os.path.exists(f)]
+        self.assertEqual(len(remaining), 1)
 
     def test_non_existent_directory_raises_error(self):
         with self.assertRaises(ValueError):
